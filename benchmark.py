@@ -54,6 +54,9 @@ MODELS = {
     "gte-modernbert": dict(hf="Alibaba-NLP/gte-modernbert-base", dtype="float16"),
     # Lexical reference point, no model download. Not a candidate.
     "tfidf-baseline": dict(backend="tfidf"),
+    # Popularity reference points: the most downloaded embedding models. Not candidates.
+    "minilm-l6": dict(hf="sentence-transformers/all-MiniLM-L6-v2", dtype="float16"),
+    "bge-small-en": dict(hf="BAAI/bge-small-en-v1.5", dtype="float16"),
 }
 
 
