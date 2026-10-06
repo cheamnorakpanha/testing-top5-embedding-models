@@ -10,7 +10,7 @@ Owner: Panha · Date: 2026-10-06 · Status: **measured on the RTX 3060 with a sy
 | **Backup**  | `Alibaba-NLP/gte-modernbert-base`         | 12 of 13 at rank 1 and every answer in the top 3, at a quarter of the VRAM (332 MB) and the highest throughput of any model tested. English-only like the corpus, Apache 2.0, no query prompt.                                                     |
 | BGE-M3      | Not selected                              | Tied with the backup on quality (12 of 13 at rank 1) but slower per query and the heaviest on RAM. Arctic is the same size and scored higher on every measure. BGE-M3 remains the model to re-test first if Khmer documents are added (section 4). |
 
-**How firm this is.** Five models were measured on the target GPU, so speed and memory figures are real. The quality ranking is weaker: the test set has 13 answerable questions over a synthetic 42-chunk corpus, four of the five models found every answer in the top 3, and the models differ by one or two questions. The picks are the best reading of this evidence, not a settled result. Section 8 says what would change them.
+**How firm this is.** Five candidates and two popular reference models were measured on the target GPU, so speed and memory figures are real. The quality ranking is weak: the test set has 13 answerable questions over a synthetic 42-chunk corpus, and the models differ by one or two questions. The clearest sign is that `all-MiniLM-L6-v2`, a 2021 model with about 23M parameters, scored 12 of 13 at rank 1, level with BGE-M3 and Qwen3, using 64 MB of VRAM. **This test is too easy to show whether a larger model is worth its cost.** The picks are the best reading of the evidence so far; a harder test on real documents could change them, including in favour of a much smaller model. Section 8 says what would change them.
 
 **The query set is a stand-in.** The real HRD documents are confidential and were not shared, so the 16 questions in section 5 run against a synthetic HR corpus written for this benchmark. Re-running on real documents with 50 or more questions is the remaining step.
 
@@ -99,7 +99,7 @@ The similar-document questions each have a deliberate trap: Q11 and Q13 mirror e
 - **Chunks/sec**: time to embed 2,000 chunks (the corpus repeated) at batch size 16.
 - **RAM / VRAM**: peak process memory and peak CUDA memory allocated, one process per model.
 - Settings: cosine similarity on normalised vectors, `max_seq_length` 512, chunk text prefixed with document title and section, fp16 on the GPU.
-- Each model was run once, in three separate invocations of the script. Timing figures can vary between runs.
+- Each model was run once, across four separate invocations of the script. Timing figures can vary between runs.
 
 ## 7. Results
 
@@ -115,51 +115,62 @@ Measured on the RTX 3060 under WSL, 2026-10-06. 13 answerable questions, 3 no-an
 | Qwen3-Embedding-0.6B                | 0.923                              | 1.000 | 1.000 | 0.949     | 0.923 | 28.4 / 31.4        | 195.7    | 2,041       | 1,318        |
 | Granite-Embedding-English-R2        | 0.846                              | 0.923 | 1.000 | 0.900     | 0.923 | 15.2 / 21.5        | 522.9    | 1,799       | 331          |
 | TF-IDF baseline (lexical reference) | 0.615                              | 0.769 | 0.846 | 0.710     | 0.692 | n/a                | n/a      | n/a         | 0            |
+| _Reference:_ all-MiniLM-L6-v2       | 0.923                              | 1.000 | 1.000 | 0.962     | 1.000 | 4.3 / 5.2          | 2,048.8  | 1,516       | 64           |
+| _Reference:_ bge-small-en-v1.5      | 0.923                              | 0.923 | 1.000 | 0.938     | 0.923 | 7.4 / 8.3          | 1,524.1  | 1,558       | 86           |
 | EmbeddingGemma-300M                 | not run: gated, access not granted |       |       |           |       |                    |          |             |              |
 | Jina-Embeddings-v5-text-small       | not run: non-commercial licence    |       |       |           |       |                    |          |             |              |
 
-Chunks/s was measured on chunks averaging 54-58 tokens. Real chunks of 300-400 tokens will be several times slower for every model.
+The two reference rows are the most downloaded embedding models on Hugging Face (253M and 71M downloads), added to check the candidates against what most people use. Both produce 384-dimension vectors. They are not candidates: all-MiniLM-L6-v2 is designed for inputs up to 256 tokens, shorter than the planned 300-400 token chunks, and bge-small-en-v1.5 is limited to 512.
+
+Chunks/s was measured on chunks averaging 52-58 tokens. Real chunks of 300-400 tokens will be several times slower for every model.
 
 ### Rank of the first expected chunk, per question
 
-| Model                        | Q01 | Q02 | Q03           | Q04 | Q05 | Q06 | Q07   | Q08 | Q09 | Q10 | Q11 | Q12 | Q13 |
-| ---------------------------- | --- | --- | ------------- | --- | --- | --- | ----- | --- | --- | --- | --- | --- | --- |
-| Arctic Embed L v2.0          | 1   | 1   | 1             | 1   | 1   | 1   | 1     | 1   | 1   | 1   | 1   | 1   | 1   |
-| BGE-M3                       | 1   | 1   | **2**         | 1   | 1   | 1   | 1     | 1   | 1   | 1   | 1   | 1   | 1   |
-| GTE-ModernBERT-base          | 1   | 1   | **3**         | 1   | 1   | 1   | 1     | 1   | 1   | 1   | 1   | 1   | 1   |
-| Qwen3-Embedding-0.6B         | 1   | 1   | 1             | 1   | 1   | 1   | **3** | 1   | 1   | 1   | 1   | 1   | 1   |
-| Granite-Embedding-English-R2 | 1   | 1   | **2**         | 1   | 1   | 1   | **5** | 1   | 1   | 1   | 1   | 1   | 1   |
-| TF-IDF baseline              | 1   | 1   | not in top 10 | 4   | 1   | 1   | 3     | 7   | 1   | 1   | 1   | 2   | 1   |
+| Model                          | Q01 | Q02 | Q03           | Q04 | Q05 | Q06 | Q07   | Q08 | Q09 | Q10 | Q11 | Q12   | Q13 |
+| ------------------------------ | --- | --- | ------------- | --- | --- | --- | ----- | --- | --- | --- | --- | ----- | --- |
+| Arctic Embed L v2.0            | 1   | 1   | 1             | 1   | 1   | 1   | 1     | 1   | 1   | 1   | 1   | 1     | 1   |
+| BGE-M3                         | 1   | 1   | **2**         | 1   | 1   | 1   | 1     | 1   | 1   | 1   | 1   | 1     | 1   |
+| GTE-ModernBERT-base            | 1   | 1   | **3**         | 1   | 1   | 1   | 1     | 1   | 1   | 1   | 1   | 1     | 1   |
+| Qwen3-Embedding-0.6B           | 1   | 1   | 1             | 1   | 1   | 1   | **3** | 1   | 1   | 1   | 1   | 1     | 1   |
+| Granite-Embedding-English-R2   | 1   | 1   | **2**         | 1   | 1   | 1   | **5** | 1   | 1   | 1   | 1   | 1     | 1   |
+| _Reference:_ all-MiniLM-L6-v2  | 1   | 1   | 1             | 1   | 1   | 1   | 1     | 1   | 1   | 1   | 1   | **2** | 1   |
+| _Reference:_ bge-small-en-v1.5 | 1   | 1   | 1             | 1   | 1   | 1   | **5** | 1   | 1   | 1   | 1   | 1     | 1   |
+| TF-IDF baseline                | 1   | 1   | not in top 10 | 4   | 1   | 1   | 3     | 7   | 1   | 1   | 1   | 2     | 1   |
 
-Only two questions separate the neural models: Q03 (the "doctor's note" paraphrase) and Q07 (the long probation question with a wedding as a distraction). Every neural model got all exact, short, technical and similar-document questions right at rank 1.
+Only two questions separate the five candidates: Q03 (the "doctor's note" paraphrase) and Q07 (the long probation question with a wedding as a distraction). Every candidate got all exact, short, technical and similar-document questions right at rank 1. all-MiniLM-L6-v2 was the only neural model to fall for a similar-document trap (Q12, sick leave vs annual leave carry-over).
 
 ### Recall@1 / MRR@10 by query type
 
-| Model                        | Exact       | Paraphrased | Short       | Long        | Technical   | Similar-document |
-| ---------------------------- | ----------- | ----------- | ----------- | ----------- | ----------- | ---------------- |
-| Arctic Embed L v2.0          | 1.00 / 1.00 | 1.00 / 1.00 | 1.00 / 1.00 | 1.00 / 1.00 | 1.00 / 1.00 | 1.00 / 1.00      |
-| BGE-M3                       | 1.00 / 1.00 | 0.50 / 0.75 | 1.00 / 1.00 | 1.00 / 1.00 | 1.00 / 1.00 | 1.00 / 1.00      |
-| GTE-ModernBERT-base          | 1.00 / 1.00 | 0.50 / 0.67 | 1.00 / 1.00 | 1.00 / 1.00 | 1.00 / 1.00 | 1.00 / 1.00      |
-| Qwen3-Embedding-0.6B         | 1.00 / 1.00 | 1.00 / 1.00 | 1.00 / 1.00 | 0.50 / 0.67 | 1.00 / 1.00 | 1.00 / 1.00      |
-| Granite-Embedding-English-R2 | 1.00 / 1.00 | 0.50 / 0.75 | 1.00 / 1.00 | 0.50 / 0.60 | 1.00 / 1.00 | 1.00 / 1.00      |
-| TF-IDF baseline              | 1.00 / 1.00 | 0.00 / 0.12 | 1.00 / 1.00 | 0.00 / 0.24 | 1.00 / 1.00 | 0.67 / 0.83      |
+| Model                          | Exact       | Paraphrased | Short       | Long        | Technical   | Similar-document |
+| ------------------------------ | ----------- | ----------- | ----------- | ----------- | ----------- | ---------------- |
+| Arctic Embed L v2.0            | 1.00 / 1.00 | 1.00 / 1.00 | 1.00 / 1.00 | 1.00 / 1.00 | 1.00 / 1.00 | 1.00 / 1.00      |
+| BGE-M3                         | 1.00 / 1.00 | 0.50 / 0.75 | 1.00 / 1.00 | 1.00 / 1.00 | 1.00 / 1.00 | 1.00 / 1.00      |
+| GTE-ModernBERT-base            | 1.00 / 1.00 | 0.50 / 0.67 | 1.00 / 1.00 | 1.00 / 1.00 | 1.00 / 1.00 | 1.00 / 1.00      |
+| Qwen3-Embedding-0.6B           | 1.00 / 1.00 | 1.00 / 1.00 | 1.00 / 1.00 | 0.50 / 0.67 | 1.00 / 1.00 | 1.00 / 1.00      |
+| Granite-Embedding-English-R2   | 1.00 / 1.00 | 0.50 / 0.75 | 1.00 / 1.00 | 0.50 / 0.60 | 1.00 / 1.00 | 1.00 / 1.00      |
+| _Reference:_ all-MiniLM-L6-v2  | 1.00 / 1.00 | 1.00 / 1.00 | 1.00 / 1.00 | 1.00 / 1.00 | 1.00 / 1.00 | 0.67 / 0.83      |
+| _Reference:_ bge-small-en-v1.5 | 1.00 / 1.00 | 1.00 / 1.00 | 1.00 / 1.00 | 0.50 / 0.60 | 1.00 / 1.00 | 1.00 / 1.00      |
+| TF-IDF baseline                | 1.00 / 1.00 | 0.00 / 0.12 | 1.00 / 1.00 | 0.00 / 0.24 | 1.00 / 1.00 | 0.67 / 0.83      |
 
 ### No-answer questions
 
-| Model                        | Mean top-1 score (answerable) | Lowest top-1 (answerable) | Highest top-1 (no-answer) | Best threshold | No-answer rejected | Answerable kept |
-| ---------------------------- | ----------------------------- | ------------------------- | ------------------------- | -------------- | ------------------ | --------------- |
-| Arctic Embed L v2.0          | 0.565                         | 0.304                     | 0.491                     | 0.280          | 2 of 3             | 13 of 13        |
-| BGE-M3                       | 0.665                         | 0.566                     | 0.596                     | 0.531          | 2 of 3             | 13 of 13        |
-| GTE-ModernBERT-base          | 0.764                         | 0.641                     | 0.729                     | 0.619          | 2 of 3             | 13 of 13        |
-| Qwen3-Embedding-0.6B         | 0.681                         | 0.479                     | 0.596                     | 0.618          | 3 of 3             | 9 of 13         |
-| Granite-Embedding-English-R2 | 0.883                         | 0.831                     | 0.885                     | 0.815          | 2 of 3             | 13 of 13        |
+| Model                          | Mean top-1 score (answerable) | Lowest top-1 (answerable) | Highest top-1 (no-answer) | Best threshold | No-answer rejected | Answerable kept |
+| ------------------------------ | ----------------------------- | ------------------------- | ------------------------- | -------------- | ------------------ | --------------- |
+| Arctic Embed L v2.0            | 0.565                         | 0.304                     | 0.491                     | 0.280          | 2 of 3             | 13 of 13        |
+| BGE-M3                         | 0.665                         | 0.566                     | 0.596                     | 0.531          | 2 of 3             | 13 of 13        |
+| GTE-ModernBERT-base            | 0.764                         | 0.641                     | 0.729                     | 0.619          | 2 of 3             | 13 of 13        |
+| Qwen3-Embedding-0.6B           | 0.681                         | 0.479                     | 0.596                     | 0.618          | 3 of 3             | 9 of 13         |
+| Granite-Embedding-English-R2   | 0.883                         | 0.831                     | 0.885                     | 0.815          | 2 of 3             | 13 of 13        |
+| _Reference:_ all-MiniLM-L6-v2  | 0.619                         | 0.369                     | 0.594                     | 0.332          | 2 of 3             | 13 of 13        |
+| _Reference:_ bge-small-en-v1.5 | 0.784                         | 0.640                     | 0.753                     | 0.623          | 2 of 3             | 13 of 13        |
 
-**No model can detect a no-answer question from the similarity score alone.** In every model at least one no-answer question scores higher than a real match. Four models let one no-answer question through; Qwen3 rejects all three only by also discarding 4 of the 13 real questions. Refusing to answer has to be handled after retrieval, by a reranker or by the LLM checking that the retrieved text contains the answer.
+**No model can detect a no-answer question from the similarity score alone.** In every model at least one no-answer question scores higher than a real match. Six models let one no-answer question through; Qwen3 rejects all three only by also discarding 4 of the 13 real questions. Refusing to answer has to be handled after retrieval, by a reranker or by the LLM checking that the retrieved text contains the answer.
 
 ### What the results do and do not show
 
 - Embedding models are clearly worth it over keyword search: the TF-IDF baseline failed every paraphrased and long question at rank 1.
 - The neural models are close. One question is worth 7.7 points of Recall@1, so Arctic's lead over BGE-M3, GTE-ModernBERT and Qwen3 is a single question.
+- The test does not discriminate by model size. The two small reference models (64 and 86 MB of VRAM) each missed one question at rank 1, the same as three of the five candidates. The likely reasons are the small corpus, short chunks on clearly different topics, and the title and section prefix on every chunk, which hands the model the topic. A larger corpus with longer and more similar chunks is needed before paying for a 568M model can be justified by data.
 - Cost differences are large and reliable: the two 149M models use about 330 MB of VRAM against 1.1-1.3 GB for the others.
 - Qwen3 had the lowest indexing throughput (196 chunks/s) and the highest VRAM, with no quality advantage to pay for it.
 
@@ -179,7 +190,8 @@ Confirm on real HRD documents with 50 or more questions, keeping the seven query
 3. If GTE-ModernBERT ties Arctic on real data, prefer it when the GPU is shared with an LLM, since it is smaller and faster.
 4. If another model wins by a clear margin (three or more questions out of 50), take the winner.
 5. If every model misses the same exact-term questions (form codes, policy ids), add keyword search alongside the embedding model before changing models.
-6. Re-measure chunks/sec and VRAM with real chunk lengths before sizing the indexing job.
+6. Include a small model in the real-data run (bge-small-en-v1.5, or all-MiniLM-L6-v2 if chunks stay under 256 tokens). If it stays within a question or two of Arctic on 50 or more real questions, the small model is the better engineering choice.
+7. Re-measure chunks/sec and VRAM with real chunk lengths before sizing the indexing job.
 
 ## 9. Configuration
 
@@ -227,7 +239,7 @@ runtime:
 ## 10. Files
 
 - `embedding-benchmark.md`: this report.
-- `benchmark.py`: the benchmark; one process per model, writes `results/results.md`. Model keys: `arctic-l-v2`, `gte-modernbert`, `bge-m3`, `qwen3-0.6b`, `granite-en-r2`, `tfidf-baseline`, plus `embeddinggemma` and `jina-v5-small` (not run).
+- `benchmark.py`: the benchmark; one process per model, writes `results/results.md`. Model keys: `arctic-l-v2`, `gte-modernbert`, `bge-m3`, `qwen3-0.6b`, `granite-en-r2`, `tfidf-baseline`, the reference models `minilm-l6` and `bge-small-en`, plus `embeddinggemma` and `jina-v5-small` (not run).
 - `make_dataset.py`: generates the synthetic `corpus.jsonl` and `queries.jsonl`. For real data, write those two files directly with the same fields (`chunk_id`, `doc_id`, `doc_title`, `section`, `text`; `query_id`, `type`, `query`, `expected_chunks`).
 
 To reproduce the full table in one run:
@@ -245,4 +257,5 @@ python3 benchmark.py --models tfidf-baseline granite-en-r2 qwen3-0.6b bge-m3 gte
 - [ibm-granite/granite-embedding-english-r2 model card](https://huggingface.co/ibm-granite/granite-embedding-english-r2)
 - [google/embeddinggemma-300m model card](https://huggingface.co/google/embeddinggemma-300m)
 - [jinaai/jina-embeddings-v5-text-small model card](https://huggingface.co/jinaai/jina-embeddings-v5-text-small)
+- [Hugging Face model API, sorted by downloads](https://huggingface.co/api/models?pipeline_tag=sentence-similarity&sort=downloads&direction=-1&limit=25) (popularity figures, 2026-10-06)
 - [A Comparative Study of Language Models for Khmer Retrieval-Augmented Question Answering (arXiv 2605.22099)](https://arxiv.org/abs/2605.22099)
