@@ -1,0 +1,358 @@
+{
+  "overall": {
+    "n": 13,
+    "recall_at_1": 1.0,
+    "recall_at_3": 1.0,
+    "recall_at_5": 1.0,
+    "mrr_at_10": 1.0,
+    "doc_hit_at_1": 1.0
+  },
+  "by_type": {
+    "exact": {
+      "n": 2,
+      "recall_at_1": 1.0,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "mrr_at_10": 1.0,
+      "doc_hit_at_1": 1.0
+    },
+    "long": {
+      "n": 2,
+      "recall_at_1": 1.0,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "mrr_at_10": 1.0,
+      "doc_hit_at_1": 1.0
+    },
+    "paraphrased": {
+      "n": 2,
+      "recall_at_1": 1.0,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "mrr_at_10": 1.0,
+      "doc_hit_at_1": 1.0
+    },
+    "short": {
+      "n": 2,
+      "recall_at_1": 1.0,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "mrr_at_10": 1.0,
+      "doc_hit_at_1": 1.0
+    },
+    "similar-document": {
+      "n": 3,
+      "recall_at_1": 1.0,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "mrr_at_10": 1.0,
+      "doc_hit_at_1": 1.0
+    },
+    "technical": {
+      "n": 2,
+      "recall_at_1": 1.0,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "mrr_at_10": 1.0,
+      "doc_hit_at_1": 1.0
+    }
+  },
+  "no_answer": {
+    "n": 3,
+    "mean_top1_answerable": 0.5646002682355734,
+    "mean_top1_no_answer": 0.32283000151316327,
+    "max_top1_no_answer": 0.4913851320743561,
+    "min_top1_answerable": 0.30425533652305603,
+    "threshold": 0.279665932059288,
+    "rejected_no_answer": 0.6666666666666666,
+    "kept_answerable": 1.0
+  },
+  "latency": {
+    "p50_ms": 14.216400500004056,
+    "p95_ms": 22.238993999962986
+  },
+  "per_query": [
+    {
+      "query_id": "Q01",
+      "type": "exact",
+      "expected": [
+        "HRD-POL-001#s4#c01"
+      ],
+      "top1": "HRD-POL-001#s4#c01",
+      "top1_score": 0.7779737114906311,
+      "top3": [
+        "HRD-POL-001#s4#c01",
+        "HRD-POL-002#s5#c01",
+        "HRD-POL-001#s2#c01"
+      ],
+      "rank": 1,
+      "doc_hit1": true,
+      "latency_ms": 19.75859699996363
+    },
+    {
+      "query_id": "Q02",
+      "type": "exact",
+      "expected": [
+        "HRD-IT-007#s2#c01"
+      ],
+      "top1": "HRD-IT-007#s2#c01",
+      "top1_score": 0.438801109790802,
+      "top3": [
+        "HRD-IT-007#s2#c01",
+        "HRD-IT-007#s5#c01",
+        "HRD-IT-007#s6#c01"
+      ],
+      "rank": 1,
+      "doc_hit1": true,
+      "latency_ms": 15.911370000139868
+    },
+    {
+      "query_id": "Q03",
+      "type": "paraphrased",
+      "expected": [
+        "HRD-POL-002#s2#c01"
+      ],
+      "top1": "HRD-POL-002#s2#c01",
+      "top1_score": 0.30425533652305603,
+      "top3": [
+        "HRD-POL-002#s2#c01",
+        "HRD-POL-002#s3#c01",
+        "HRD-POL-001#s3#c01"
+      ],
+      "rank": 1,
+      "doc_hit1": true,
+      "latency_ms": 16.139200999987224
+    },
+    {
+      "query_id": "Q04",
+      "type": "paraphrased",
+      "expected": [
+        "HRD-PRO-004#s4#c01"
+      ],
+      "top1": "HRD-PRO-004#s4#c01",
+      "top1_score": 0.34698981046676636,
+      "top3": [
+        "HRD-PRO-004#s4#c01",
+        "HRD-PRO-004#s2#c01",
+        "HRD-PRO-004#s5#c01"
+      ],
+      "rank": 1,
+      "doc_hit1": true,
+      "latency_ms": 13.601224000012735
+    },
+    {
+      "query_id": "Q05",
+      "type": "short",
+      "expected": [
+        "HRD-POL-008#s4#c01"
+      ],
+      "top1": "HRD-POL-008#s4#c01",
+      "top1_score": 0.49701011180877686,
+      "top3": [
+        "HRD-POL-008#s4#c01",
+        "HRD-POL-008#s2#c01",
+        "HRD-POL-008#s3#c01"
+      ],
+      "rank": 1,
+      "doc_hit1": true,
+      "latency_ms": 12.623772999859284
+    },
+    {
+      "query_id": "Q06",
+      "type": "short",
+      "expected": [
+        "HRD-POL-003#s4#c01"
+      ],
+      "top1": "HRD-POL-003#s4#c01",
+      "top1_score": 0.4706611931324005,
+      "top3": [
+        "HRD-POL-003#s4#c01",
+        "HRD-POL-003#s5#c01",
+        "HRD-POL-003#s2#c01"
+      ],
+      "rank": 1,
+      "doc_hit1": true,
+      "latency_ms": 17.39431200007857
+    },
+    {
+      "query_id": "Q07",
+      "type": "long",
+      "expected": [
+        "HRD-HB-005#s4#c01"
+      ],
+      "top1": "HRD-HB-005#s4#c01",
+      "top1_score": 0.4877110719680786,
+      "top3": [
+        "HRD-HB-005#s4#c01",
+        "HRD-HB-005#s2#c01",
+        "HRD-HB-005#s3#c01"
+      ],
+      "rank": 1,
+      "doc_hit1": true,
+      "latency_ms": 13.454442000011113
+    },
+    {
+      "query_id": "Q08",
+      "type": "long",
+      "expected": [
+        "HRD-POL-003#s4#c01",
+        "HRD-POL-003#s3#c01",
+        "HRD-POL-003#s2#c01"
+      ],
+      "top1": "HRD-POL-003#s4#c01",
+      "top1_score": 0.4899270236492157,
+      "top3": [
+        "HRD-POL-003#s4#c01",
+        "HRD-POL-003#s3#c01",
+        "HRD-POL-003#s6#c01"
+      ],
+      "rank": 1,
+      "doc_hit1": true,
+      "latency_ms": 12.813638000125138
+    },
+    {
+      "query_id": "Q09",
+      "type": "technical",
+      "expected": [
+        "HRD-IT-007#s4#c01"
+      ],
+      "top1": "HRD-IT-007#s4#c01",
+      "top1_score": 0.8340653777122498,
+      "top3": [
+        "HRD-IT-007#s4#c01",
+        "HRD-IT-007#s6#c01",
+        "HRD-IT-007#s5#c01"
+      ],
+      "rank": 1,
+      "doc_hit1": true,
+      "latency_ms": 14.158651999878202
+    },
+    {
+      "query_id": "Q10",
+      "type": "technical",
+      "expected": [
+        "HRD-IT-007#s1#c01"
+      ],
+      "top1": "HRD-IT-007#s1#c01",
+      "top1_score": 0.5162641406059265,
+      "top3": [
+        "HRD-IT-007#s1#c01",
+        "HRD-IT-007#s4#c01",
+        "HRD-IT-007#s2#c01"
+      ],
+      "rank": 1,
+      "doc_hit1": true,
+      "latency_ms": 19.33351999991828
+    },
+    {
+      "query_id": "Q11",
+      "type": "similar-document",
+      "expected": [
+        "HRD-HB-006#s1#c01"
+      ],
+      "top1": "HRD-HB-006#s1#c01",
+      "top1_score": 0.7403826713562012,
+      "top3": [
+        "HRD-HB-006#s1#c01",
+        "HRD-HB-006#s3#c01",
+        "HRD-HB-006#s4#c01"
+      ],
+      "rank": 1,
+      "doc_hit1": true,
+      "latency_ms": 14.704923999943276
+    },
+    {
+      "query_id": "Q12",
+      "type": "similar-document",
+      "expected": [
+        "HRD-POL-002#s5#c01"
+      ],
+      "top1": "HRD-POL-002#s5#c01",
+      "top1_score": 0.662065863609314,
+      "top3": [
+        "HRD-POL-002#s5#c01",
+        "HRD-POL-001#s4#c01",
+        "HRD-POL-002#s3#c01"
+      ],
+      "rank": 1,
+      "doc_hit1": true,
+      "latency_ms": 14.03329799995845
+    },
+    {
+      "query_id": "Q13",
+      "type": "similar-document",
+      "expected": [
+        "HRD-HB-005#s2#c01"
+      ],
+      "top1": "HRD-HB-005#s2#c01",
+      "top1_score": 0.7736960649490356,
+      "top3": [
+        "HRD-HB-005#s2#c01",
+        "HRD-HB-006#s4#c01",
+        "HRD-HB-005#s3#c01"
+      ],
+      "rank": 1,
+      "doc_hit1": true,
+      "latency_ms": 13.617052999961743
+    },
+    {
+      "query_id": "Q14",
+      "type": "no-answer",
+      "expected": [],
+      "top1": "HRD-POL-001#s1#c01",
+      "top1_score": 0.25507652759552,
+      "top3": [
+        "HRD-POL-001#s1#c01",
+        "HRD-POL-002#s1#c01",
+        "HRD-POL-003#s1#c01"
+      ],
+      "rank": null,
+      "doc_hit1": false,
+      "latency_ms": 13.71159399991484
+    },
+    {
+      "query_id": "Q15",
+      "type": "no-answer",
+      "expected": [],
+      "top1": "HRD-POL-001#s2#c01",
+      "top1_score": 0.4913851320743561,
+      "top3": [
+        "HRD-POL-001#s2#c01",
+        "HRD-POL-002#s2#c01",
+        "HRD-POL-001#s3#c01"
+      ],
+      "rank": null,
+      "doc_hit1": false,
+      "latency_ms": 13.376706000144623
+    },
+    {
+      "query_id": "Q16",
+      "type": "no-answer",
+      "expected": [],
+      "top1": "HRD-POL-008#s2#c01",
+      "top1_score": 0.22202834486961365,
+      "top3": [
+        "HRD-POL-008#s2#c01",
+        "HRD-POL-008#s3#c01",
+        "HRD-POL-003#s5#c01"
+      ],
+      "rank": null,
+      "doc_hit1": false,
+      "latency_ms": 15.644199000007575
+    }
+  ],
+  "model": "arctic-l-v2",
+  "hf": "Snowflake/snowflake-arctic-embed-l-v2.0",
+  "device": "cuda",
+  "dtype": "float16",
+  "dim": 1024,
+  "batch_size": 16,
+  "max_seq_length": 512,
+  "load_seconds": 222.08244809100006,
+  "chunks_per_sec": 407.2644677834521,
+  "mean_tokens_per_chunk": 58.07142857142857,
+  "tokens_per_sec": 23650.42945056761,
+  "peak_ram_mb": 2866.54296875,
+  "peak_vram_mb": 1123.1025390625,
+  "n_chunks": 42
+}

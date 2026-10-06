@@ -1,0 +1,358 @@
+{
+  "overall": {
+    "n": 13,
+    "recall_at_1": 0.6153846153846154,
+    "recall_at_3": 0.7692307692307693,
+    "recall_at_5": 0.8461538461538461,
+    "mrr_at_10": 0.7097069597069597,
+    "doc_hit_at_1": 0.6923076923076923
+  },
+  "by_type": {
+    "exact": {
+      "n": 2,
+      "recall_at_1": 1.0,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "mrr_at_10": 1.0,
+      "doc_hit_at_1": 1.0
+    },
+    "long": {
+      "n": 2,
+      "recall_at_1": 0.0,
+      "recall_at_3": 0.5,
+      "recall_at_5": 0.5,
+      "mrr_at_10": 0.23809523809523808,
+      "doc_hit_at_1": 0.5
+    },
+    "paraphrased": {
+      "n": 2,
+      "recall_at_1": 0.0,
+      "recall_at_3": 0.0,
+      "recall_at_5": 0.5,
+      "mrr_at_10": 0.125,
+      "doc_hit_at_1": 0.0
+    },
+    "short": {
+      "n": 2,
+      "recall_at_1": 1.0,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "mrr_at_10": 1.0,
+      "doc_hit_at_1": 1.0
+    },
+    "similar-document": {
+      "n": 3,
+      "recall_at_1": 0.6666666666666666,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "mrr_at_10": 0.8333333333333334,
+      "doc_hit_at_1": 0.6666666666666666
+    },
+    "technical": {
+      "n": 2,
+      "recall_at_1": 1.0,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "mrr_at_10": 1.0,
+      "doc_hit_at_1": 1.0
+    }
+  },
+  "no_answer": {
+    "n": 3,
+    "mean_top1_answerable": 0.3567211043376189,
+    "mean_top1_no_answer": 0.232718825340271,
+    "max_top1_no_answer": 0.26162731647491455,
+    "min_top1_answerable": 0.16523824632167816,
+    "threshold": 0.26736611127853394,
+    "rejected_no_answer": 1.0,
+    "kept_answerable": 0.7692307692307693
+  },
+  "latency": {
+    "p50_ms": 0.017843000023276545,
+    "p95_ms": 0.05053199993199087
+  },
+  "per_query": [
+    {
+      "query_id": "Q01",
+      "type": "exact",
+      "expected": [
+        "HRD-POL-001#s4#c01"
+      ],
+      "top1": "HRD-POL-001#s4#c01",
+      "top1_score": 0.6623499393463135,
+      "top3": [
+        "HRD-POL-001#s4#c01",
+        "HRD-POL-002#s5#c01",
+        "HRD-POL-001#s5#c01"
+      ],
+      "rank": 1,
+      "doc_hit1": true,
+      "latency_ms": 0.035444999866740545
+    },
+    {
+      "query_id": "Q02",
+      "type": "exact",
+      "expected": [
+        "HRD-IT-007#s2#c01"
+      ],
+      "top1": "HRD-IT-007#s2#c01",
+      "top1_score": 0.35778045654296875,
+      "top3": [
+        "HRD-IT-007#s2#c01",
+        "HRD-POL-003#s1#c01",
+        "HRD-IT-007#s5#c01"
+      ],
+      "rank": 1,
+      "doc_hit1": true,
+      "latency_ms": 0.01960400004463736
+    },
+    {
+      "query_id": "Q03",
+      "type": "paraphrased",
+      "expected": [
+        "HRD-POL-002#s2#c01"
+      ],
+      "top1": "HRD-POL-008#s3#c01",
+      "top1_score": 0.16523824632167816,
+      "top3": [
+        "HRD-POL-008#s3#c01",
+        "HRD-POL-002#s3#c01",
+        "HRD-POL-001#s3#c01"
+      ],
+      "rank": null,
+      "doc_hit1": false,
+      "latency_ms": 0.019857999632222345
+    },
+    {
+      "query_id": "Q04",
+      "type": "paraphrased",
+      "expected": [
+        "HRD-PRO-004#s4#c01"
+      ],
+      "top1": "HRD-HB-006#s1#c01",
+      "top1_score": 0.34691447019577026,
+      "top3": [
+        "HRD-HB-006#s1#c01",
+        "HRD-POL-008#s4#c01",
+        "HRD-HB-005#s2#c01"
+      ],
+      "rank": 4,
+      "doc_hit1": false,
+      "latency_ms": 0.016125999991345452
+    },
+    {
+      "query_id": "Q05",
+      "type": "short",
+      "expected": [
+        "HRD-POL-008#s4#c01"
+      ],
+      "top1": "HRD-POL-008#s4#c01",
+      "top1_score": 0.41421520709991455,
+      "top3": [
+        "HRD-POL-008#s4#c01",
+        "HRD-IT-007#s4#c01",
+        "HRD-POL-001#s1#c01"
+      ],
+      "rank": 1,
+      "doc_hit1": true,
+      "latency_ms": 0.013792999652650906
+    },
+    {
+      "query_id": "Q06",
+      "type": "short",
+      "expected": [
+        "HRD-POL-003#s4#c01"
+      ],
+      "top1": "HRD-POL-003#s4#c01",
+      "top1_score": 0.2731049060821533,
+      "top3": [
+        "HRD-POL-003#s4#c01",
+        "HRD-POL-003#s5#c01",
+        "HRD-POL-003#s1#c01"
+      ],
+      "rank": 1,
+      "doc_hit1": true,
+      "latency_ms": 0.013604999821836827
+    },
+    {
+      "query_id": "Q07",
+      "type": "long",
+      "expected": [
+        "HRD-HB-005#s4#c01"
+      ],
+      "top1": "HRD-HB-006#s2#c01",
+      "top1_score": 0.22298994660377502,
+      "top3": [
+        "HRD-HB-006#s2#c01",
+        "HRD-POL-001#s1#c01",
+        "HRD-HB-005#s4#c01"
+      ],
+      "rank": 3,
+      "doc_hit1": false,
+      "latency_ms": 0.028712000130326487
+    },
+    {
+      "query_id": "Q08",
+      "type": "long",
+      "expected": [
+        "HRD-POL-003#s4#c01",
+        "HRD-POL-003#s3#c01",
+        "HRD-POL-003#s2#c01"
+      ],
+      "top1": "HRD-POL-003#s6#c01",
+      "top1_score": 0.20022296905517578,
+      "top3": [
+        "HRD-POL-003#s6#c01",
+        "HRD-HB-005#s1#c01",
+        "HRD-HB-006#s2#c01"
+      ],
+      "rank": 7,
+      "doc_hit1": true,
+      "latency_ms": 0.02881499995055492
+    },
+    {
+      "query_id": "Q09",
+      "type": "technical",
+      "expected": [
+        "HRD-IT-007#s4#c01"
+      ],
+      "top1": "HRD-IT-007#s4#c01",
+      "top1_score": 0.4924851357936859,
+      "top3": [
+        "HRD-IT-007#s4#c01",
+        "HRD-IT-007#s6#c01",
+        "HRD-HB-005#s1#c01"
+      ],
+      "rank": 1,
+      "doc_hit1": true,
+      "latency_ms": 0.016152999705809634
+    },
+    {
+      "query_id": "Q10",
+      "type": "technical",
+      "expected": [
+        "HRD-IT-007#s1#c01"
+      ],
+      "top1": "HRD-IT-007#s1#c01",
+      "top1_score": 0.28414785861968994,
+      "top3": [
+        "HRD-IT-007#s1#c01",
+        "HRD-POL-008#s5#c01",
+        "HRD-HB-006#s4#c01"
+      ],
+      "rank": 1,
+      "doc_hit1": true,
+      "latency_ms": 0.0168259998645226
+    },
+    {
+      "query_id": "Q11",
+      "type": "similar-document",
+      "expected": [
+        "HRD-HB-006#s1#c01"
+      ],
+      "top1": "HRD-HB-006#s1#c01",
+      "top1_score": 0.3739776313304901,
+      "top3": [
+        "HRD-HB-006#s1#c01",
+        "HRD-HB-005#s2#c01",
+        "HRD-HB-006#s5#c01"
+      ],
+      "rank": 1,
+      "doc_hit1": true,
+      "latency_ms": 0.01808200022423989
+    },
+    {
+      "query_id": "Q12",
+      "type": "similar-document",
+      "expected": [
+        "HRD-POL-002#s5#c01"
+      ],
+      "top1": "HRD-POL-001#s4#c01",
+      "top1_score": 0.37033477425575256,
+      "top3": [
+        "HRD-POL-001#s4#c01",
+        "HRD-POL-002#s5#c01",
+        "HRD-POL-003#s2#c01"
+      ],
+      "rank": 2,
+      "doc_hit1": false,
+      "latency_ms": 0.016590000086580403
+    },
+    {
+      "query_id": "Q13",
+      "type": "similar-document",
+      "expected": [
+        "HRD-HB-005#s2#c01"
+      ],
+      "top1": "HRD-HB-005#s2#c01",
+      "top1_score": 0.47361281514167786,
+      "top3": [
+        "HRD-HB-005#s2#c01",
+        "HRD-HB-005#s4#c01",
+        "HRD-HB-006#s1#c01"
+      ],
+      "rank": 1,
+      "doc_hit1": true,
+      "latency_ms": 0.01743400025588926
+    },
+    {
+      "query_id": "Q14",
+      "type": "no-answer",
+      "expected": [],
+      "top1": "HRD-POL-008#s4#c01",
+      "top1_score": 0.26162731647491455,
+      "top3": [
+        "HRD-POL-008#s4#c01",
+        "HRD-POL-002#s1#c01",
+        "HRD-POL-003#s1#c01"
+      ],
+      "rank": null,
+      "doc_hit1": false,
+      "latency_ms": 0.01580199977979646
+    },
+    {
+      "query_id": "Q15",
+      "type": "no-answer",
+      "expected": [],
+      "top1": "HRD-POL-002#s4#c01",
+      "top1_score": 0.25499042868614197,
+      "top3": [
+        "HRD-POL-002#s4#c01",
+        "HRD-POL-001#s3#c01",
+        "HRD-POL-001#s4#c01"
+      ],
+      "rank": null,
+      "doc_hit1": false,
+      "latency_ms": 0.018629999885888537
+    },
+    {
+      "query_id": "Q16",
+      "type": "no-answer",
+      "expected": [],
+      "top1": "HRD-HB-005#s2#c01",
+      "top1_score": 0.18153873085975647,
+      "top3": [
+        "HRD-HB-005#s2#c01",
+        "HRD-POL-003#s5#c01",
+        "HRD-IT-007#s4#c01"
+      ],
+      "rank": null,
+      "doc_hit1": false,
+      "latency_ms": 0.015847000213398132
+    }
+  ],
+  "model": "tfidf-baseline",
+  "hf": "-",
+  "device": "cpu",
+  "dtype": "float32",
+  "dim": 515,
+  "batch_size": 16,
+  "max_seq_length": 512,
+  "load_seconds": 0.0013407219998953224,
+  "chunks_per_sec": 19281.24995332605,
+  "mean_tokens_per_chunk": 41.04761904761905,
+  "tokens_per_sec": 791449.4028460502,
+  "peak_ram_mb": 34.92578125,
+  "peak_vram_mb": 0.0,
+  "n_chunks": 42
+}
