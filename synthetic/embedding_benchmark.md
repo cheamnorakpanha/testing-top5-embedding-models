@@ -1,18 +1,20 @@
-# Embedding Model Benchmark
+# Embedding Model Benchmark: Synthetic Corpus
 
-Owner: Panha · Date: 2026-10-06 · Status: **measured on the RTX 3060 with a synthetic corpus; confirmation on real HRD documents pending**
+Owner: Panha · Date: 2026-10-06 · Status: **measured on the RTX 3060 with a synthetic corpus**
+
+> This report covers the benchmark on a synthetic HR corpus. The same models were afterwards tested on real HRD data, and that test changed the picks. See `embedding_benchmark_real_data.md`, which takes precedence wherever the two disagree.
 
 ## 1. Bottom line
 
-| Role        | Model                                     | Why                                                                                                                                                                                                                                                |
-| ----------- | ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Primary** | `Snowflake/snowflake-arctic-embed-l-v2.0` | The only model to put the right chunk first for all 13 answerable questions (Recall@1 1.000). 14 ms per query, 1.1 GB VRAM, Apache 2.0, not gated.                                                                                                 |
-| **Backup**  | `Alibaba-NLP/gte-modernbert-base`         | 12 of 13 at rank 1 and every answer in the top 3, at a quarter of the VRAM (332 MB) and the highest throughput of any model tested. English-only like the corpus, Apache 2.0, no query prompt.                                                     |
-| BGE-M3      | Not selected                              | Tied with the backup on quality (12 of 13 at rank 1) but slower per query and the heaviest on RAM. Arctic is the same size and scored higher on every measure. BGE-M3 remains the model to re-test first if Khmer documents are added (section 4). |
+| Role        | Model                                     | Why                                                                                                                                                                                               |
+| ----------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Primary** | `Snowflake/snowflake-arctic-embed-l-v2.0` | The only model to put the right chunk first for all 13 answerable questions (Recall@1 1.000). 14 ms per query, 1.1 GB VRAM, Apache 2.0, not gated.                                                |
+| **Backup**  | `Alibaba-NLP/gte-modernbert-base`         | 12 of 13 at rank 1 and every answer in the top 3, at a quarter of the VRAM (332 MB) and the highest throughput of the five candidates. English-only like the corpus, Apache 2.0, no query prompt. |
+| BGE-M3      | Not selected on this test                 | Tied with the backup on quality (12 of 13 at rank 1) but slower per query and the heaviest on RAM in this run. Arctic is the same size and scored higher on every measure.                        |
 
-**How firm this is.** Five candidates and two popular reference models were measured on the target GPU, so speed and memory figures are real. The quality ranking is weak: the test set has 13 answerable questions over a synthetic 42-chunk corpus, and the models differ by one or two questions. The clearest sign is that `all-MiniLM-L6-v2`, a 2021 model with about 23M parameters, scored 12 of 13 at rank 1, level with BGE-M3 and Qwen3, using 64 MB of VRAM. **This test is too easy to show whether a larger model is worth its cost.** The picks are the best reading of the evidence so far; a harder test on real documents could change them, including in favour of a much smaller model. Section 8 says what would change them.
+**How firm this is.** Five candidates and two popular reference models were measured on the target GPU, so speed and memory figures are real. The quality ranking is weak: the test set has 13 answerable questions over a synthetic 42-chunk corpus, and the models differ by one or two questions. The clearest sign is that `all-MiniLM-L6-v2`, a 2021 model with about 23M parameters, scored 12 of 13 at rank 1, level with BGE-M3 and Qwen3, using 64 MB of VRAM. **This test is too easy to show whether a larger model is worth its cost.** The picks are the best reading of this evidence only.
 
-**The query set is a stand-in.** The real HRD documents are confidential and were not shared, so the 16 questions in section 5 run against a synthetic HR corpus written for this benchmark. Re-running on real documents with 50 or more questions is the remaining step.
+**The query set is a stand-in.** The real HRD data was confidential and was not shared, so the 16 questions in section 5 run against a synthetic HR policy corpus written for this benchmark.
 
 **Changes from the first draft.** Qwen3-Embedding-0.6B and Granite English R2 were the picks on paper. Measurement moved both down: Qwen3 had no quality advantage and was the slowest to index, and Granite was matched in cost and beaten by one question by GTE-ModernBERT. EmbeddingGemma and Jina v5 could not be run and were replaced by Arctic and GTE-ModernBERT (section 3).
 
@@ -27,21 +29,23 @@ Owner: Panha · Date: 2026-10-06 · Status: **measured on the RTX 3060 with a sy
 
 ### Measured
 
-|                                      | Arctic Embed L v2.0                       | GTE-ModernBERT-base                              | BGE-M3                               | Qwen3-Embedding-0.6B        | Granite-Embedding-English-R2               |
-| ------------------------------------ | ----------------------------------------- | ------------------------------------------------ | ------------------------------------ | --------------------------- | ------------------------------------------ |
-| Hugging Face id                      | `Snowflake/snowflake-arctic-embed-l-v2.0` | `Alibaba-NLP/gte-modernbert-base`                | `BAAI/bge-m3`                        | `Qwen/Qwen3-Embedding-0.6B` | `ibm-granite/granite-embedding-english-r2` |
-| Parameters                           | 568M                                      | 149M                                             | ~568M                                | 0.6B                        | 149M                                       |
-| Dimensions                           | 1024 (truncatable to 256)                 | 768                                              | 1024                                 | 1024 (truncatable 32-1024)  | 768                                        |
-| Max input (tokens)                   | 8,192                                     | 8,192                                            | 8,192                                | 32,000                      | 8,192                                      |
-| Languages                            | 74                                        | English only                                     | 100+                                 | 100+                        | English only                               |
-| Licence                              | Apache 2.0                                | Apache 2.0                                       | MIT                                  | Apache 2.0                  | Apache 2.0                                 |
-| Gated download                       | No                                        | No                                               | No                                   | No                          | No                                         |
-| Query prompt needed                  | Yes (built into the model)                | No                                               | No                                   | Yes (instruction)           | No                                         |
-| Peak VRAM, measured (fp16, batch 16) | 1,123 MB                                  | 332 MB                                           | 1,123 MB                             | 1,318 MB                    | 331 MB                                     |
-| Peak RAM, measured                   | 2.9 GB                                    | 1.6 GB                                           | 3.5 GB                               | 2.0 GB                      | 1.8 GB                                     |
-| Notes                                | Published BEIR 55.6                       | Published BEIR 55.33; needs `transformers>=4.48` | Also outputs sparse and multi-vector | Left padding required       | ModernBERT encoder                         |
+|                                                    | Arctic Embed L v2.0                       | GTE-ModernBERT-base                              | BGE-M3                               | Qwen3-Embedding-0.6B        | Granite-Embedding-English-R2               |
+| -------------------------------------------------- | ----------------------------------------- | ------------------------------------------------ | ------------------------------------ | --------------------------- | ------------------------------------------ |
+| Hugging Face id                                    | `Snowflake/snowflake-arctic-embed-l-v2.0` | `Alibaba-NLP/gte-modernbert-base`                | `BAAI/bge-m3`                        | `Qwen/Qwen3-Embedding-0.6B` | `ibm-granite/granite-embedding-english-r2` |
+| Parameters                                         | 568M                                      | 149M                                             | ~568M                                | 0.6B                        | 149M                                       |
+| Dimensions                                         | 1024 (truncatable to 256)                 | 768                                              | 1024                                 | 1024 (truncatable 32-1024)  | 768                                        |
+| Max input (tokens)                                 | 8,192                                     | 8,192                                            | 8,192                                | 32,000                      | 8,192                                      |
+| Languages                                          | 74                                        | English only                                     | 100+                                 | 100+                        | English only                               |
+| Licence                                            | Apache 2.0                                | Apache 2.0                                       | MIT                                  | Apache 2.0                  | Apache 2.0                                 |
+| Gated download                                     | No                                        | No                                               | No                                   | No                          | No                                         |
+| Query prompt needed                                | Yes (built into the model)                | No                                               | No                                   | Yes (instruction)           | No                                         |
+| Peak VRAM on the synthetic corpus (fp16, batch 16) | 1,123 MB                                  | 332 MB                                           | 1,123 MB                             | 1,318 MB                    | 331 MB                                     |
+| Peak RAM on the synthetic corpus                   | 2.9 GB                                    | 1.6 GB                                           | 3.5 GB                               | 2.0 GB                      | 1.8 GB                                     |
+| Notes                                              | Published BEIR 55.6                       | Published BEIR 55.33; needs `transformers>=4.48` | Also outputs sparse and multi-vector | Left padding required       | ModernBERT encoder                         |
 
 All five fit a 6 GB card with room to spare. VRAM was measured on short chunks (about 55 tokens); chunks of 300-400 tokens will use more.
+
+`BAAI/bge-small-en-v1.5` (about 33M parameters, 384 dimensions, 512-token limit, English only, MIT licence, not gated) was measured as a popularity reference point, together with `sentence-transformers/all-MiniLM-L6-v2` (section 7).
 
 ### Selected originally but not run
 
@@ -61,8 +65,8 @@ Both entries are still in `benchmark.py` and can be run later if access or licen
 
 - Measured here, BGE-M3 was good: 12 of 13 at rank 1, every answer in the top 3, and the best MRR after Arctic. It is not a bad choice.
 - Arctic is the same size, used the same VRAM, and did better on every measure in this run: one more question at rank 1, 14 ms against 36 ms per query, 407 against 268 chunks per second, and 2.9 GB against 3.5 GB of RAM.
-- BGE-M3's distinctive advantages do not apply yet: broad multilingual coverage, and sparse output for hybrid search.
-- Evidence in its favour for a different corpus: a May 2026 study of Khmer retrieval (200 questions, 7,000+ chunks) found BGE-M3 ahead of Qwen3-Embedding on every metric (Hit Rate@5 0.355 vs 0.205, MRR@3 0.221 vs 0.141). **If Khmer documents or Khmer questions enter scope, re-run the benchmark with BGE-M3 included.** Arctic's Khmer quality is untested here.
+- BGE-M3's distinctive advantages do not apply to this corpus: broad multilingual coverage, and sparse output for hybrid search.
+- Evidence in its favour for a different corpus: a May 2026 study of Khmer retrieval (200 questions, 7,000+ chunks) found BGE-M3 ahead of Qwen3-Embedding on every metric (Hit Rate@5 0.355 vs 0.205, MRR@3 0.221 vs 0.141). Arctic's Khmer quality is untested here.
 
 ## 5. HRD retrieval questions
 
@@ -176,21 +180,21 @@ Only two questions separate the five candidates: Q03 (the "doctor's note" paraph
 
 ## 8. Recommendation and decision rules
 
-**Primary: Arctic Embed L v2.0. Backup: GTE-ModernBERT-base.**
+**Primary: Arctic Embed L v2.0. Backup: GTE-ModernBERT-base.** On the synthetic corpus only; the real-data report supersedes this.
 
-- **Arctic** is first or tied for first on every quality measure, is as fast per query as the small models, and has a permissive licence and an open download. Its lead is one question, so it is the best-supported choice, not a proven winner.
-- **GTE-ModernBERT** is the backup because it is a different size class: if VRAM gets tight when an LLM shares the GPU, it gives nearly the same retrieval for under a third of the memory. It beat Granite, its direct rival, by one question at the same cost.
+- **Arctic** is first or tied for first on every quality measure, is as fast per query as the small models, and has a permissive licence and an open download. Its lead is one question, so it is the best-supported choice on this test, not a proven winner.
+- **GTE-ModernBERT** is the backup because it is a different size class: nearly the same retrieval for under a third of the memory. It beat Granite, its direct rival, by one question at the same cost.
 - **BGE-M3**: see section 4.
 - **Qwen3-0.6B** and **Granite English R2** are usable but offered nothing the two picks do not.
 
-Confirm on real HRD documents with 50 or more questions, keeping the seven query types:
+Rules set for confirming on real data:
 
 1. Rank by Recall@5, then MRR@10. Treat a gap of one or two questions as a tie.
 2. Keep Arctic as primary if it is best or tied for best.
 3. If GTE-ModernBERT ties Arctic on real data, prefer it when the GPU is shared with an LLM, since it is smaller and faster.
 4. If another model wins by a clear margin (three or more questions out of 50), take the winner.
 5. If every model misses the same exact-term questions (form codes, policy ids), add keyword search alongside the embedding model before changing models.
-6. Include a small model in the real-data run (bge-small-en-v1.5, or all-MiniLM-L6-v2 if chunks stay under 256 tokens). If it stays within a question or two of Arctic on 50 or more real questions, the small model is the better engineering choice.
+6. Include a small model in the real-data run. If it stays within a question or two of Arctic on 50 or more real questions, the small model is the better engineering choice.
 7. Re-measure chunks/sec and VRAM with real chunk lengths before sizing the indexing job.
 
 ## 9. Configuration
@@ -232,20 +236,22 @@ runtime:
 ```
 
 - Arctic needs its query prompt on queries and nothing on documents. Leaving the prompt off queries will lower recall.
-- The two models produce different vector sizes (1024 vs 768). Switching to the backup means re-embedding the whole corpus into a separate index; keep both indexes built if fast failover matters.
+- The two models produce different vector sizes (1024 vs 768). Switching to the backup means re-embedding the whole corpus into a separate index.
 - Changing the model, its revision, the query prompt or the chunk prefix also requires re-embedding.
 - The benchmark embedded each chunk with its document title and section heading in front. Keep that prefix in production, since the measured results depend on it.
 
 ## 10. Files
 
-- `embedding-benchmark.md`: this report.
+- `embedding_benchmark.md`: this report (synthetic corpus).
+- `embedding_benchmark_real_data.md`: the follow-up on real HRD data.
 - `benchmark.py`: the benchmark; one process per model, writes `results/results.md`. Model keys: `arctic-l-v2`, `gte-modernbert`, `bge-m3`, `qwen3-0.6b`, `granite-en-r2`, `tfidf-baseline`, the reference models `minilm-l6` and `bge-small-en`, plus `embeddinggemma` and `jina-v5-small` (not run).
-- `make_dataset.py`: generates the synthetic `corpus.jsonl` and `queries.jsonl`. For real data, write those two files directly with the same fields (`chunk_id`, `doc_id`, `doc_title`, `section`, `text`; `query_id`, `type`, `query`, `expected_chunks`).
+- `make_dataset.py`: generates the synthetic `corpus.jsonl` and `queries.jsonl`.
 
 To reproduce the full table in one run:
 
 ```
-python3 benchmark.py --models tfidf-baseline granite-en-r2 qwen3-0.6b bge-m3 gte-modernbert arctic-l-v2
+python3 make_dataset.py
+python3 benchmark.py --models tfidf-baseline granite-en-r2 qwen3-0.6b bge-m3 gte-modernbert arctic-l-v2 minilm-l6 bge-small-en
 ```
 
 ## Sources

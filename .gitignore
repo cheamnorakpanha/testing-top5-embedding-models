@@ -1,0 +1,23 @@
+# Confidential HRD data: never commit
+docs/
+real/
+results_real/
+*.xlsx
+*.xlsm
+*.xls
+~$*
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Local settings and tokens
+.env
+.huggingface/
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
