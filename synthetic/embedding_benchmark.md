@@ -2,7 +2,7 @@
 
 Owner: Panha · Date: 2026-10-06 · Status: **measured on the RTX 3060 with a synthetic corpus**
 
-> This report covers the benchmark on a synthetic HR corpus. The same models were afterwards tested on real HRD data, and that test changed the picks. See `embedding_benchmark_real_data.md`, which takes precedence wherever the two disagree.
+> This report covers the benchmark on a synthetic HR corpus. The same models were afterwards tested on real HRD data, and that test changed the picks. See `real_data/embedding_benchmark_real_data.md`, which takes precedence wherever the two disagree.
 
 ## 1. Bottom line
 
@@ -242,16 +242,19 @@ runtime:
 
 ## 10. Files
 
-- `embedding_benchmark.md`: this report (synthetic corpus).
-- `embedding_benchmark_real_data.md`: the follow-up on real HRD data.
-- `benchmark.py`: the benchmark; one process per model, writes `results/results.md`. Model keys: `arctic-l-v2`, `gte-modernbert`, `bge-m3`, `qwen3-0.6b`, `granite-en-r2`, `tfidf-baseline`, the reference models `minilm-l6` and `bge-small-en`, plus `embeddinggemma` and `jina-v5-small` (not run).
-- `make_dataset.py`: generates the synthetic `corpus.jsonl` and `queries.jsonl`.
+Paths are relative to the project root.
 
-To reproduce the full table in one run:
+- `synthetic/embedding_benchmark.md`: this report (synthetic corpus).
+- `real_data/embedding_benchmark_real_data.md`: the follow-up on real HRD data.
+- `benchmark.py`: the benchmark, shared by both reports; one process per model. Model keys: `arctic-l-v2`, `gte-modernbert`, `bge-m3`, `qwen3-0.6b`, `granite-en-r2`, `tfidf-baseline`, the reference models `minilm-l6` and `bge-small-en`, plus `embeddinggemma` and `jina-v5-small` (not run).
+- `synthetic/make_dataset.py`: generates the synthetic `corpus.jsonl` and `queries.jsonl` next to itself.
+- `synthetic/results/`: output of the benchmark runs.
+
+To reproduce the full table in one run, from the project root:
 
 ```
-python3 make_dataset.py
-python3 benchmark.py --models tfidf-baseline granite-en-r2 qwen3-0.6b bge-m3 gte-modernbert arctic-l-v2 minilm-l6 bge-small-en
+python3 synthetic/make_dataset.py
+python3 benchmark.py --corpus synthetic/corpus.jsonl --queries synthetic/queries.jsonl --out synthetic/results --models tfidf-baseline granite-en-r2 qwen3-0.6b bge-m3 gte-modernbert arctic-l-v2 minilm-l6 bge-small-en
 ```
 
 ## Sources

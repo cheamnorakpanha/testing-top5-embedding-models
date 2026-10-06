@@ -2,7 +2,7 @@
 
 Owner: Panha · Date: 2026-10-06 · Status: **measured on the RTX 3060 with real HRD workbooks (405 chunks, 70 questions)**
 
-> This report follows `embedding_benchmark.md`, which selected candidates and tested them on a synthetic corpus. The picks below replace the ones in that report.
+> This report follows `synthetic/embedding_benchmark.md`, which selected candidates and tested them on a synthetic corpus. The picks below replace the ones in that report.
 
 ## 1. Bottom line
 
@@ -46,7 +46,7 @@ The workbooks were read in place by `excel_to_corpus.py` and were not modified. 
 
 ## 4. Retrieval questions
 
-70 questions were generated from the data, 10 of each type. They contain student names, so they are kept in `real/queries.jsonl` on the local machine and are described here by template. The expected document is the workbook, the section is the sheet, and the chunk id is `workbook#sheet#r<Excel row>` for a student row or `workbook#sheet#card` for a sheet description.
+70 questions were generated from the data, 10 of each type. They contain student names, so they are kept in `real_data/real/queries.jsonl` on the local machine and are described here by template. The expected document is the workbook, the section is the sheet, and the chunk id is `workbook#sheet#r<Excel row>` for a student row or `workbook#sheet#card` for a sheet description.
 
 | Type             | Template                                                                                | Expected chunk                                                    |
 | ---------------- | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
@@ -206,17 +206,22 @@ runtime:
 
 ## 9. Files
 
-- `embedding_benchmark_real_data.md`: this report.
-- `embedding_benchmark.md`: the earlier report on the synthetic corpus, with candidate research and specifications.
-- `excel_to_corpus.py`: reads the Excel workbooks in place and writes `real/corpus.jsonl` and `real/queries.jsonl`. These two files contain student names and scores and must stay on the local machine.
-- `inspect_layout.py`: prints the layout of Excel sheets with every cell masked, for checking new files.
-- `benchmark.py`: the benchmark; one process per model.
+Paths are relative to the project root.
 
-To reproduce:
+- `real_data/embedding_benchmark_real_data.md`: this report.
+- `synthetic/embedding_benchmark.md`: the earlier report on the synthetic corpus, with candidate research and specifications.
+- `benchmark.py`: the benchmark, shared by both reports; one process per model.
+- `real_data/excel_to_corpus.py`: reads the Excel workbooks in place and writes the corpus and questions.
+- `real_data/inspect_layout.py`: prints the layout of Excel sheets with every cell masked, for checking new files.
+- `real_data/docs/`: the HRD workbooks. Confidential; excluded from git.
+- `real_data/real/`: generated `corpus.jsonl` and `queries.jsonl`. They contain student names and scores; excluded from git.
+- `real_data/results_real/`: output of the benchmark runs; excluded from git.
+
+To reproduce, from the project root:
 
 ```
-python3 excel_to_corpus.py docs
-python3 benchmark.py --corpus real/corpus.jsonl --queries real/queries.jsonl --out results_real --models tfidf-baseline bge-small-en gte-modernbert arctic-l-v2 bge-m3
+python3 real_data/excel_to_corpus.py real_data/docs --out real_data/real
+python3 benchmark.py --corpus real_data/real/corpus.jsonl --queries real_data/real/queries.jsonl --out real_data/results_real --models tfidf-baseline bge-small-en gte-modernbert arctic-l-v2 bge-m3
 ```
 
 ## Sources
