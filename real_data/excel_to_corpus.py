@@ -138,8 +138,12 @@ def build(target, show_headers):
                 print(f"SKIP {f.name} / {sheet}: no student rows found")
                 continue
             base = f"{doc}#{sheet}"
-            card = (f"{info['title']}\nThis sheet has {len(info['rows'])} student rows. "
-                    f"Columns: {', '.join(info['headers'])}.")
+            card = (f"Sheet summary: {sheet} sheet of {doc}. Overview of the whole {sheet} class list: "
+                    f"{len(info['rows'])} students, their results, totals, averages, ranking, attendance "
+                    f"and absences. Use this for questions about the {sheet} sheet as a whole: how many "
+                    f"students, who scored highest or lowest, the average, the top students, who was absent "
+                    f"most, who failed, a summary, or which columns exist.\n"
+                    f"Title: {info['title']}\nColumns: {', '.join(info['headers'])}.")
             if info["notes"]:
                 card += "\nNotes: " + " / ".join(info["notes"])
             chunks.append(dict(chunk_id=f"{base}#card", doc_id=doc, doc_title=doc, section=sheet, text=card))

@@ -57,6 +57,11 @@ MODELS = {
     # Popularity reference points: the most downloaded embedding models. Not candidates.
     "minilm-l6": dict(hf="sentence-transformers/all-MiniLM-L6-v2", dtype="float16"),
     "bge-small-en": dict(hf="BAAI/bge-small-en-v1.5", dtype="float16"),
+    # Hybrid: dense model + keyword search (TF-IDF), scores added together.
+    "hybrid-arctic": dict(hf="Snowflake/snowflake-arctic-embed-l-v2.0", dtype="float16",
+                          query_prompt_name="query", hybrid=True),
+    "hybrid-bge-m3": dict(hf="BAAI/bge-m3", dtype="float16", hybrid=True),
+    "hybrid-bge-small": dict(hf="BAAI/bge-small-en-v1.5", dtype="float16", hybrid=True),
 }
 
 
@@ -185,10 +190,51 @@ class STBackend:
         return self.torch.cuda.max_memory_allocated() / 2**20
 
 
+class HybridBackend:
+    """Dense model + TF-IDF keyword search, fused by adding the two cosine similarities.
+    The two vectors are concatenated, so dot product = dense_sim + weight * keyword_sim
+    and the rest of the benchmark works unchanged."""
+
+    def __init__(self, cfg, device, max_seq_length, corpus_texts, weight=1.0):
+        self.dense = STBackend(cfg, device, max_seq_length)
+        self.lex = TfidfBackend(corpus_texts)
+        self.weight = weight
+        self.device = self.dense.device
+        self.dtype = self.dense.dtype
+        self.dim = self.dense.dim + self.lex.dim
+
+    def _join(self, d, l):
+        return np.concatenate([d, self.weight * l], axis=-1).astype(np.float32)
+
+    def encode_docs(self, texts, batch_size):
+        return self._join(self.dense.encode_docs(texts, batch_size), self.lex.encode_docs(texts, batch_size))
+
+    def encode_query(self, text):
+        return self._join(self.dense.encode_query(text), self.lex.encode_query(text))
+
+    def count_tokens(self, texts):
+        return self.dense.count_tokens(texts)
+
+    def vram_mb(self):
+        return self.dense.vram_mb()
+
+
 # ------------------------------------------------------------------ metrics
-def evaluate(queries, chunks, doc_emb, backend, latency_repeats):
+def sheet_mask(query, chunks, sections):
+    """If the query names one or more sheets, return a boolean mask of chunks in those sheets."""
+    ql = query.lower()
+    hit = [sec for sec in sections
+           if re.search(r"(?<![a-z0-9])" + re.escape(sec.lower()) + r"(?![a-z0-9])", ql)]
+    if not hit:
+        return None
+    return np.array([c["section"].strip() in hit for c in chunks])
+
+
+def evaluate(queries, chunks, doc_emb, backend, latency_repeats, sheet_filter=False):
     ids = [c["chunk_id"] for c in chunks]
     doc_of = {c["chunk_id"]: c["doc_id"] for c in chunks}
+    sections = sorted({c["section"].strip() for c in chunks}, key=len, reverse=True)
+    filtered = 0
     for q in queries[:3]:                               # warm-up
         backend.encode_query(q["query"])
     rows, lat = [], []
@@ -198,9 +244,15 @@ def evaluate(queries, chunks, doc_emb, backend, latency_repeats):
             t0 = time.perf_counter()
             qv = backend.encode_query(q["query"])
             scores = doc_emb @ qv
+            if sheet_filter:
+                mask = sheet_mask(q["query"], chunks, sections)
+                if mask is not None:
+                    scores = np.where(mask, scores, -np.inf)
             order = np.argsort(-scores)[:10]
             times.append((time.perf_counter() - t0) * 1000)
         lat.extend(times)
+        if sheet_filter and sheet_mask(q["query"], chunks, sections) is not None:
+            filtered += 1
         ranked = [ids[i] for i in order]
         exp = q["expected_chunks"]
         rank = next((r for r, cid in enumerate(ranked, 1) if cid in exp), None)
@@ -251,7 +303,8 @@ def evaluate(queries, chunks, doc_emb, backend, latency_repeats):
     lat.sort()
     latency = dict(p50_ms=statistics.median(
         lat), p95_ms=lat[min(len(lat) - 1, int(0.95 * len(lat)))])
-    return dict(overall=overall, by_type=by_type, no_answer=na, latency=latency, per_query=rows)
+    return dict(overall=overall, by_type=by_type, no_answer=na, latency=latency, per_query=rows,
+                sheet_filter=sheet_filter, queries_filtered=filtered)
 
 
 def worker(args):
@@ -264,6 +317,8 @@ def worker(args):
     t0 = time.perf_counter()
     if cfg.get("backend") == "tfidf":
         backend = TfidfBackend(texts)
+    elif cfg.get("hybrid"):
+        backend = HybridBackend(cfg, args.device, args.max_seq_length, texts, cfg.get("weight", 1.0))
     else:
         backend = STBackend(cfg, args.device, args.max_seq_length)
     load_s = time.perf_counter() - t0
@@ -281,7 +336,7 @@ def worker(args):
     tokens = backend.count_tokens(texts)
     mean_tok = sum(tokens) / len(tokens)
 
-    res = evaluate(queries, chunks, doc_emb, backend, args.latency_repeats)
+    res = evaluate(queries, chunks, doc_emb, backend, args.latency_repeats, args.sheet_filter)
     res.update(model=key, hf=cfg.get("hf", "-"), device=backend.device,
                dtype=getattr(backend, "dtype", "float32"), dim=int(doc_emb.shape[1]),
                batch_size=args.batch_size, max_seq_length=args.max_seq_length,
@@ -304,7 +359,9 @@ def report(results, failures, out):
         r0 = results[0]
         L += [f"Corpus: {r0['n_chunks']} chunks. Answerable queries: {r0['overall']['n']}. "
               f"No-answer queries: {r0['no_answer']['n'] if r0['no_answer'] else 0}. "
-              f"max_seq_length={r0['max_seq_length']}, batch_size={r0['batch_size']}.", ""]
+              f"max_seq_length={r0['max_seq_length']}, batch_size={r0['batch_size']}. "
+              + (f"Sheet filter ON: {r0.get('queries_filtered', 0)} queries named a sheet and were "
+                 f"restricted to it." if r0.get("sheet_filter") else "Sheet filter off."), ""]
     L += ["## Summary", "",
           "| Model | Device / dtype | Dim | R@1 | R@3 | R@5 | MRR@10 | Doc@1 | Query p50 ms | Query p95 ms | Chunks/s | Peak RAM MB | Peak VRAM MB |",
           "|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
@@ -375,6 +432,8 @@ def main():
     p.add_argument("--latency-repeats", type=int, default=5)
     p.add_argument("--no-heading", action="store_true",
                    help="embed chunk text without 'title - section' prefix")
+    p.add_argument("--sheet-filter", action="store_true",
+                   help="when a query names a sheet, search only inside that sheet")
     p.add_argument("--worker", default=None, help=argparse.SUPPRESS)
     args = p.parse_args()
 
