@@ -4,14 +4,16 @@ Owner: Panha · Date: 2026-10-06 · Status: **measured on the RTX 3060 with real
 
 > This report follows `synthetic/embedding_benchmark.md`, which selected candidates and tested them on a synthetic corpus. The picks below replace the ones in that report.
 
+> **Update, 19 October 2026:** see Part 2 (*Embedding Benchmark, Part 2: Realistic Questions and Retrieval Design*). On realistic questions the recommended setup is **hybrid search with `BAAI/bge-small-en-v1.5` and a sheet filter**, which scored 97% first-result on an unseen question set. The model comparison below still stands as the record of Part 1.
+
 ## 1. Bottom line
 
-| Role              | Model                                     | Why                                                                                                                                                                                                                                           |
-| ----------------- | ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Primary**       | `BAAI/bge-m3`                             | Best or tied for best on real HRD data: the right row in the top 3 for 58 of 60 questions (0.967) and the highest MRR (0.902). MIT licence, not gated. It can also produce keyword-style (sparse) vectors, which suits this data (see below). |
-| **Backup**        | `BAAI/bge-small-en-v1.5`                  | 49 of 60 at rank 1 against 51 for the primary, and level at rank 5, using 109 MB of VRAM (a tenth of the primary) at nearly five times the indexing speed. The fallback when the GPU is shared with an LLM. English-only, 512-token limit.    |
-| Equal alternative | `Snowflake/snowflake-arctic-embed-l-v2.0` | Statistically tied with BGE-M3 (52 of 60 at rank 1, but 54 against 58 in the top 3). Same size, speed and memory. Apache 2.0.                                                                                                                 |
-| **Rejected**      | `Alibaba-NLP/gte-modernbert-base`         | The backup on synthetic data, it scored below plain keyword search on real data (0.533 against 0.617 at rank 1) and never found a sheet-description chunk.                                                                                    |
+| Role | Model | Why |
+|---|---|---|
+| **Primary** | `BAAI/bge-m3` | Best or tied for best on real HRD data: the right row in the top 3 for 58 of 60 questions (0.967) and the highest MRR (0.902). MIT licence, not gated. It can also produce keyword-style (sparse) vectors, which suits this data (see below). |
+| **Backup** | `BAAI/bge-small-en-v1.5` | 49 of 60 at rank 1 against 51 for the primary, and level at rank 5, using 109 MB of VRAM (a tenth of the primary) at nearly five times the indexing speed. The fallback when the GPU is shared with an LLM. English-only, 512-token limit. |
+| Equal alternative | `Snowflake/snowflake-arctic-embed-l-v2.0` | Statistically tied with BGE-M3 (52 of 60 at rank 1, but 54 against 58 in the top 3). Same size, speed and memory. Apache 2.0. |
+| **Rejected** | `Alibaba-NLP/gte-modernbert-base` | The backup on synthetic data, it scored below plain keyword search on real data (0.533 against 0.617 at rank 1) and never found a sheet-description chunk. |
 
 **BGE-M3 was treated as a candidate, not the default, and earned the pick on measurement.** It lost to Arctic by one question on the earlier synthetic test and came out level or ahead on real data. The choice between BGE-M3 and Arctic is a tie-break, explained in section 7.
 
@@ -32,13 +34,13 @@ Owner: Panha · Date: 2026-10-06 · Status: **measured on the RTX 3060 with real
 
 ## 3. The data
 
-|              |                                                                                                                                |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------------ |
-| Source       | 3 workbooks, 14 sheets: August 2026 attendance (2 sheets), April monthly result (5), August monthly result (7)                 |
-| Chunks       | 405: one per student row (391), written as `Column: value; ...`, plus one description card per sheet (14)                      |
-| Chunk length | median 30 words, longest 145; about 90 tokens on average                                                                       |
-| Questions    | 70, generated from the data by template: 10 each of exact, paraphrased, short, long, technical, similar-document and no-answer |
-| Not included | `Attendance_List_Aug.xls.xls`, which is not an Excel workbook despite its name and could not be read                           |
+| | |
+|---|---|
+| Source | 3 workbooks, 14 sheets: August 2026 attendance (2 sheets), April monthly result (5), August monthly result (7) |
+| Chunks | 405: one per student row (391), written as `Column: value; ...`, plus one description card per sheet (14) |
+| Chunk length | median 30 words, longest 145; about 90 tokens on average |
+| Questions | 70, generated from the data by template: 10 each of exact, paraphrased, short, long, technical, similar-document and no-answer |
+| Not included | `Attendance_List_Aug.xls.xls`, which is not an Excel workbook despite its name and could not be read |
 
 The same students appear in several sheets, so most questions have near-duplicate rows competing with the right one. "Technical" questions ask what a sheet contains and expect its description card. No-answer questions use invented names.
 
@@ -48,27 +50,27 @@ The workbooks were read in place by `excel_to_corpus.py` and were not modified. 
 
 70 questions were generated from the data, 10 of each type. They contain student names, so they are kept in `real_data/real/queries.jsonl` on the local machine and are described here by template. The expected document is the workbook, the section is the sheet, and the chunk id is `workbook#sheet#r<Excel row>` for a student row or `workbook#sheet#card` for a sheet description.
 
-| Type             | Template                                                                                | Expected chunk                                                    |
-| ---------------- | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| Exact            | What is {name}'s {column} in the {sheet} sheet of {workbook}?                           | That student's row in that sheet                                  |
-| Paraphrased      | How did {name} do in {sheet}? (four phrasings; no column or workbook given)             | That student's row in that sheet                                  |
-| Short            | {name} {sheet}                                                                          | That student's row in that sheet                                  |
-| Long             | A three-sentence request naming the workbook, sheet, student and two columns            | That student's row in that sheet                                  |
-| Technical        | Which columns are recorded in the {sheet} sheet of {workbook}?                          | The sheet's description card                                      |
+| Type | Template | Expected chunk |
+|---|---|---|
+| Exact | What is {name}'s {column} in the {sheet} sheet of {workbook}? | That student's row in that sheet |
+| Paraphrased | How did {name} do in {sheet}? (four phrasings; no column or workbook given) | That student's row in that sheet |
+| Short | {name} {sheet} | That student's row in that sheet |
+| Long | A three-sentence request naming the workbook, sheet, student and two columns | That student's row in that sheet |
+| Technical | Which columns are recorded in the {sheet} sheet of {workbook}? | The sheet's description card |
 | Similar-document | {name}'s result in {sheet} ({workbook}), for students who appear in more than one sheet | The row in the named sheet, not the same student's rows elsewhere |
-| No-answer        | What did {invented name} score in {sheet}?                                              | None; the name is not in the data                                 |
+| No-answer | What did {invented name} score in {sheet}? | None; the name is not in the data |
 
 ## 5. Models and method
 
-|                    | BGE-M3        | Arctic Embed L v2.0                       | bge-small-en-v1.5        | GTE-ModernBERT-base               |
-| ------------------ | ------------- | ----------------------------------------- | ------------------------ | --------------------------------- |
-| Hugging Face id    | `BAAI/bge-m3` | `Snowflake/snowflake-arctic-embed-l-v2.0` | `BAAI/bge-small-en-v1.5` | `Alibaba-NLP/gte-modernbert-base` |
-| Parameters         | ~568M         | 568M                                      | ~33M                     | 149M                              |
-| Dimensions         | 1024          | 1024                                      | 384                      | 768                               |
-| Max input (tokens) | 8,192         | 8,192                                     | 512                      | 8,192                             |
-| Languages          | 100+          | 74                                        | English only             | English only                      |
-| Licence            | MIT           | Apache 2.0                                | MIT                      | Apache 2.0                        |
-| Query prompt       | No            | Yes (built in)                            | None used                | No                                |
+| | BGE-M3 | Arctic Embed L v2.0 | bge-small-en-v1.5 | GTE-ModernBERT-base |
+|---|---|---|---|---|
+| Hugging Face id | `BAAI/bge-m3` | `Snowflake/snowflake-arctic-embed-l-v2.0` | `BAAI/bge-small-en-v1.5` | `Alibaba-NLP/gte-modernbert-base` |
+| Parameters | ~568M | 568M | ~33M | 149M |
+| Dimensions | 1024 | 1024 | 384 | 768 |
+| Max input (tokens) | 8,192 | 8,192 | 512 | 8,192 |
+| Languages | 100+ | 74 | English only | English only |
+| Licence | MIT | Apache 2.0 | MIT | Apache 2.0 |
+| Query prompt | No | Yes (built in) | None used | No |
 
 A TF-IDF keyword search was run as a baseline. Qwen3-Embedding-0.6B, Granite English R2 and all-MiniLM-L6-v2, which were measured on the synthetic corpus, were not run on the real data.
 
@@ -87,35 +89,35 @@ Measured on the RTX 3060 under WSL, 2026-10-06. 60 answerable questions, 10 no-a
 
 ### Summary
 
-| Model                            | R@1       | R@3       | R@5       | MRR@10    | Doc@1 | Query p50 / p95 ms | Chunks/s | Peak RAM MB | Peak VRAM MB |
-| -------------------------------- | --------- | --------- | --------- | --------- | ----- | ------------------ | -------- | ----------- | ------------ |
-| **BGE-M3**                       | 0.850     | **0.967** | **0.967** | **0.902** | 0.967 | 15.1 / 18.7        | 248.7    | 3,010       | 1,185        |
-| Arctic Embed L v2.0              | **0.867** | 0.900     | 0.950     | 0.898     | 0.967 | 15.8 / 21.8        | 253.3    | 3,001       | 1,185        |
-| **bge-small-en-v1.5**            | 0.817     | 0.883     | 0.950     | 0.867     | 0.900 | 8.6 / 9.9          | 1,176.9  | 1,519       | 109          |
-| TF-IDF baseline (keyword search) | 0.617     | 0.867     | 0.967     | 0.744     | 0.950 | n/a                | n/a      | n/a         | 0            |
-| GTE-ModernBERT-base              | 0.533     | 0.750     | 0.817     | 0.644     | 0.883 | 15.4 / 19.9        | 349.2    | 1,562       | 396          |
+| Model | R@1 | R@3 | R@5 | MRR@10 | Doc@1 | Query p50 / p95 ms | Chunks/s | Peak RAM MB | Peak VRAM MB |
+|---|---|---|---|---|---|---|---|---|---|
+| **BGE-M3** | 0.850 | **0.967** | **0.967** | **0.902** | 0.967 | 15.1 / 18.7 | 248.7 | 3,010 | 1,185 |
+| Arctic Embed L v2.0 | **0.867** | 0.900 | 0.950 | 0.898 | 0.967 | 15.8 / 21.8 | 253.3 | 3,001 | 1,185 |
+| **bge-small-en-v1.5** | 0.817 | 0.883 | 0.950 | 0.867 | 0.900 | 8.6 / 9.9 | 1,176.9 | 1,519 | 109 |
+| TF-IDF baseline (keyword search) | 0.617 | 0.867 | 0.967 | 0.744 | 0.950 | n/a | n/a | n/a | 0 |
+| GTE-ModernBERT-base | 0.533 | 0.750 | 0.817 | 0.644 | 0.883 | 15.4 / 19.9 | 349.2 | 1,562 | 396 |
 
 As counts out of 60 at rank 1 / top 3 / top 5: BGE-M3 51 / 58 / 58, Arctic 52 / 54 / 57, bge-small-en 49 / 53 / 57, TF-IDF 37 / 52 / 58, GTE-ModernBERT 32 / 45 / 49.
 
 ### Recall@1 / MRR@10 by query type (10 questions each)
 
-| Model               | Exact       | Paraphrased | Short       | Long        | Technical   | Similar-document |
-| ------------------- | ----------- | ----------- | ----------- | ----------- | ----------- | ---------------- |
-| BGE-M3              | 0.90 / 0.95 | 0.70 / 0.83 | 1.00 / 1.00 | 0.90 / 0.95 | 0.80 / 0.81 | 0.80 / 0.87      |
-| Arctic Embed L v2.0 | 0.90 / 0.93 | 0.70 / 0.80 | 1.00 / 1.00 | 1.00 / 1.00 | 0.60 / 0.66 | 1.00 / 1.00      |
-| bge-small-en-v1.5   | 0.90 / 0.93 | 0.40 / 0.59 | 1.00 / 1.00 | 0.90 / 0.95 | 0.70 / 0.73 | 1.00 / 1.00      |
-| TF-IDF baseline     | 0.70 / 0.82 | 0.70 / 0.78 | 0.60 / 0.71 | 0.60 / 0.78 | 0.70 / 0.75 | 0.40 / 0.62      |
-| GTE-ModernBERT-base | 0.60 / 0.77 | 0.60 / 0.76 | 0.30 / 0.53 | 1.00 / 1.00 | 0.00 / 0.00 | 0.70 / 0.81      |
+| Model | Exact | Paraphrased | Short | Long | Technical | Similar-document |
+|---|---|---|---|---|---|---|
+| BGE-M3 | 0.90 / 0.95 | 0.70 / 0.83 | 1.00 / 1.00 | 0.90 / 0.95 | 0.80 / 0.81 | 0.80 / 0.87 |
+| Arctic Embed L v2.0 | 0.90 / 0.93 | 0.70 / 0.80 | 1.00 / 1.00 | 1.00 / 1.00 | 0.60 / 0.66 | 1.00 / 1.00 |
+| bge-small-en-v1.5 | 0.90 / 0.93 | 0.40 / 0.59 | 1.00 / 1.00 | 0.90 / 0.95 | 0.70 / 0.73 | 1.00 / 1.00 |
+| TF-IDF baseline | 0.70 / 0.82 | 0.70 / 0.78 | 0.60 / 0.71 | 0.60 / 0.78 | 0.70 / 0.75 | 0.40 / 0.62 |
+| GTE-ModernBERT-base | 0.60 / 0.77 | 0.60 / 0.76 | 0.30 / 0.53 | 1.00 / 1.00 | 0.00 / 0.00 | 0.70 / 0.81 |
 
 ### No-answer questions
 
-| Model               | Mean top-1 score (answerable) | Lowest top-1 (answerable) | Highest top-1 (no-answer) | Best threshold | No-answer rejected | Answerable kept |
-| ------------------- | ----------------------------- | ------------------------- | ------------------------- | -------------- | ------------------ | --------------- |
-| BGE-M3              | 0.726                         | 0.529                     | 0.720                     | 0.722          | 10 of 10           | 65%             |
-| Arctic Embed L v2.0 | 0.695                         | 0.461                     | 0.622                     | 0.599          | 9 of 10            | 87%             |
-| bge-small-en-v1.5   | 0.833                         | 0.641                     | 0.813                     | 0.779          | 9 of 10            | 83%             |
-| GTE-ModernBERT-base | 0.826                         | 0.605                     | 0.785                     | 0.793          | 10 of 10           | 72%             |
-| TF-IDF baseline     | 0.435                         | 0.244                     | 0.519                     | 0.320          | 7 of 10            | 93%             |
+| Model | Mean top-1 score (answerable) | Lowest top-1 (answerable) | Highest top-1 (no-answer) | Best threshold | No-answer rejected | Answerable kept |
+|---|---|---|---|---|---|---|
+| BGE-M3 | 0.726 | 0.529 | 0.720 | 0.722 | 10 of 10 | 65% |
+| Arctic Embed L v2.0 | 0.695 | 0.461 | 0.622 | 0.599 | 9 of 10 | 87% |
+| bge-small-en-v1.5 | 0.833 | 0.641 | 0.813 | 0.779 | 9 of 10 | 83% |
+| GTE-ModernBERT-base | 0.826 | 0.605 | 0.785 | 0.793 | 10 of 10 | 72% |
+| TF-IDF baseline | 0.435 | 0.244 | 0.519 | 0.320 | 7 of 10 | 93% |
 
 As on the synthetic corpus, no model separates no-answer questions by score. Rejecting an unknown name costs between 13% and 35% of the real questions, depending on the model. A name that is not in the data is better caught by an exact check against the list of student names than by a similarity threshold.
 
@@ -165,7 +167,7 @@ embedding:
   primary:
     model: BAAI/bge-m3
     revision: <pin the commit hash you benchmarked>
-    dtype: float16 # GPU; float32 on CPU
+    dtype: float16              # GPU; float32 on CPU
     dimensions: 1024
     max_seq_length: 512
     batch_size: 16
@@ -173,7 +175,7 @@ embedding:
     similarity: cosine
     query_prompt: none
     document_prompt: none
-    sparse: optional # BGE-M3 lexical weights, for hybrid search (untested here)
+    sparse: optional            # BGE-M3 lexical weights, for hybrid search (untested here)
   backup:
     model: BAAI/bge-small-en-v1.5
     revision: <pin the commit hash you benchmarked>
@@ -183,19 +185,19 @@ embedding:
     batch_size: 16
     normalize: true
     similarity: cosine
-    query_prompt: none # as benchmarked; its optional query instruction was not used
+    query_prompt: none          # as benchmarked; its optional query instruction was not used
     document_prompt: none
-chunking: # for the Excel workbooks
+chunking:                       # for the Excel workbooks
   unit: one chunk per student row, plus one description card per sheet
-  row_text: "<Column>: <value>; <Column>: <value>; ..." # empty cells left out
+  row_text: "<Column>: <value>; <Column>: <value>; ..."     # empty cells left out
   card_text: sheet title lines, row count, column names, footer notes
   prefix: "<workbook name> - <sheet name>\n"
 retrieval:
-  top_k: 5 # right row in the top 5 for 58 of 60 questions with the primary
-  hybrid: recommended # add keyword search; see section 7
+  top_k: 5                      # right row in the top 5 for 58 of 60 questions with the primary
+  hybrid: recommended           # add keyword search; see section 7
   no_answer: exact name lookup or a check after retrieval, not a score threshold
 runtime:
-  HF_HUB_OFFLINE: 1 # after the first download; nothing leaves the machine
+  HF_HUB_OFFLINE: 1             # after the first download; nothing leaves the machine
 ```
 
 - Measured with the primary on real data: 15 ms per query, about 250 chunks per second, 1.2 GB VRAM, 3.0 GB RAM. With the backup: 9 ms, about 1,180 chunks per second, 109 MB VRAM, 1.5 GB RAM.
