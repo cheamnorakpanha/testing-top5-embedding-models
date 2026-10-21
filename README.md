@@ -2,14 +2,14 @@
 
 Selecting a local embedding model for HRD data, measured on an RTX 3060.
 
-**Result (19 Oct 2026, Part 2): hybrid search with `BAAI/bge-small-en-v1.5` plus a sheet filter** scored 97% first-result on unseen realistic questions. The retrieval design mattered more than the model. Part 1 (6 Oct) had picked `BAAI/bge-m3` on clean questions; see `real_data/embedding_benchmark_part2.md`.
+**Result (21 Oct 2026, final benchmark): `BAAI/bge-m3` as primary, `BAAI/bge-small-en-v1.5` as backup, both in hybrid mode (embedding plus keyword search) with a sheet filter.** The two scored identically, 97% first-result on unseen realistic questions; the retrieval design mattered more than the model. See `reports/embedding_benchmark_final.md`.
 
 ## Two benchmarks
 
 | | Synthetic | Real data |
 |---|---|---|
 | Folder | `synthetic/` | `real_data/` |
-| Report | `synthetic/embedding_benchmark.md` | `real_data/embedding_benchmark_real_data.md` |
+| Report | `reports/embedding_benchmark.md` | `reports/embedding_benchmark_real_data.md`, then `reports/embedding_benchmark_final.md` |
 | Data | 42 invented HR policy chunks, 16 questions | HRD Excel workbooks: 405 chunks, 70 generated questions |
 | Purpose | Candidate research, specifications, first measurements | Confirming the choice on the actual data |
 | Picks | Arctic Embed L v2.0, GTE-ModernBERT-base | **BGE-M3, bge-small-en-v1.5** |
@@ -61,7 +61,7 @@ python3 benchmark.py --corpus real_data/real/corpus.jsonl --queries real_data/re
 
 Models are downloaded from Hugging Face on first use and cached. Everything else runs locally.
 
-## Part 2: realistic questions and retrieval design
+## Final benchmark: realistic questions and retrieval design
 
 ```
 cd real_data
@@ -69,6 +69,8 @@ python3 make_mentor_questions.py              # 41 mentor-style questions -> rea
 python3 make_mentor_questions.py --heldout    # 38 unseen-wording questions -> real/queries_heldout.jsonl
 python3 ../benchmark.py --corpus real/corpus.jsonl --queries real/queries_heldout.jsonl --out results_heldout --sheet-filter --models tfidf-baseline hybrid-arctic hybrid-bge-small
 ```
+
+Pinned environment for the final run: torch 2.6.0, transformers 4.51.3, sentence-transformers 4.1.0.
 
 `benchmark.py` gained hybrid model keys (`hybrid-bge-small`, `hybrid-arctic`, `hybrid-bge-m3`) and a `--sheet-filter` option; `excel_to_corpus.py` now writes a summary chunk per sheet.
 

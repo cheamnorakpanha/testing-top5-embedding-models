@@ -2,9 +2,9 @@
 
 Owner: Panha · Date: 2026-10-06 · Status: **measured on the RTX 3060 with real HRD workbooks (405 chunks, 70 questions)**
 
-> This report follows `synthetic/embedding_benchmark.md`, which selected candidates and tested them on a synthetic corpus. The picks below replace the ones in that report.
+> This report follows `reports/embedding_benchmark.md`, which selected candidates and tested them on a synthetic corpus. The picks below replace the ones in that report.
 
-> **Update, 19 October 2026:** see Part 2 (*Embedding Benchmark, Part 2: Realistic Questions and Retrieval Design*). On realistic questions the recommended setup is **hybrid search with `BAAI/bge-small-en-v1.5` and a sheet filter**, which scored 97% first-result on an unseen question set. The model comparison below still stands as the record of Part 1.
+> **Update, 19 October 2026:** see the final benchmark (*Embedding Benchmark, Final: Realistic Questions and Retrieval Design*). On realistic questions the recommended setup is **hybrid search (embedding plus keyword) with a sheet filter**. The final run confirmed `BAAI/bge-m3` as primary and `BAAI/bge-small-en-v1.5` as backup; both scored 97% first-result on an unseen question set. The model comparison below still stands as the record of the first benchmark.
 
 ## 1. Bottom line
 
@@ -210,8 +210,8 @@ runtime:
 
 Paths are relative to the project root.
 
-- `real_data/embedding_benchmark_real_data.md`: this report.
-- `synthetic/embedding_benchmark.md`: the earlier report on the synthetic corpus, with candidate research and specifications.
+- `reports/embedding_benchmark_real_data.md`: this report.
+- `reports/embedding_benchmark.md`: the earlier report on the synthetic corpus, with candidate research and specifications.
 - `benchmark.py`: the benchmark, shared by both reports; one process per model.
 - `real_data/excel_to_corpus.py`: reads the Excel workbooks in place and writes the corpus and questions.
 - `real_data/inspect_layout.py`: prints the layout of Excel sheets with every cell masked, for checking new files.
